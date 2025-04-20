@@ -15,6 +15,8 @@ export async function getPhoneticLyrics(
   hasKorean: boolean,
   lyricsOnly: string[],
 ): Promise<any> {
+  // TODO: Check for Chinese characters here and create the prompt. Differentiate between Chinese sonds and Japanese songs. 
+  
   if (hasKanji) {
     if (storage.get('enable_romaji') === 'true') {
       return await generateRomaji(lyricsJson, lyricsOnly);
