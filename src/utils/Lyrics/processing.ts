@@ -11,7 +11,10 @@ import { convertLyrics } from './conversion';
 
 // Regular expressions for language detection
 const JAPANESE_REGEX = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9faf\uf900-\ufaff]/;
+const JAPANESE_ALPHABET_REGEX = /[\u3040-\u30ff]/; // Hiragana & Katakana
+
 const KOREAN_REGEX = /[\uAC00-\uD7AF]/;
+const CHINESE_REGEX = /[\u4e00-\u9fff\u3400-\u4DBF\uf900-\ufaff]/;
 
 // Timing offset for lyrics synchronization
 const LYRICS_TIMING_OFFSET = 0.55;
@@ -30,12 +33,12 @@ export async function processAndEnhanceLyrics(
   const { lyricsJson: preparedLyricsJson, lyricsOnly } =
     await prepareLyricsForGemini(lyricsJson);
 
-  const { hasKanji, hasKorean } = detectLanguages(preparedLyricsJson);
+  const { hasKanji, hasKorean, hasChinese } = detectLanguages(preparedLyricsJson);
 
   const phoneticLyricsJson = JSON.parse(JSON.stringify(preparedLyricsJson));
 
   const [processedLyricsJson, translations] = await Promise.all([
-    getPhoneticLyrics(phoneticLyricsJson, hasKanji, hasKorean, lyricsOnly),
+    getPhoneticLyrics(phoneticLyricsJson, hasKanji, hasKorean, hasChinese, lyricsOnly),
     fetchTranslationsWithGemini(preparedLyricsJson, lyricsOnly),
   ]);
 
@@ -65,6 +68,7 @@ export async function processAndEnhanceLyrics(
 export function detectLanguages(lyricsJson: any): {
   hasKanji: boolean;
   hasKorean: boolean;
+  hasChinese: boolean;
 } {
   const hasKanji =
     lyricsJson.Content?.some((item: any) =>
@@ -82,7 +86,29 @@ export function detectLanguages(lyricsJson: any): {
     lyricsJson.Lines?.some((item: any) => KOREAN_REGEX.test(item.Text)) ||
     false;
 
-  return { hasKanji, hasKorean };
+  const hasJapaneseAlphabet =
+  lyricsJson.Content?.some((item: any) =>
+    item.Lead?.Syllables?.some((syl: any) => JAPANESE_ALPHABET_REGEX.test(syl.Text)),
+  ) ||
+  lyricsJson.Content?.some((item: any) => JAPANESE_ALPHABET_REGEX.test(item.Text)) ||
+  lyricsJson.Lines?.some((item: any) => JAPANESE_ALPHABET_REGEX.test(item.Text)) ||
+  false;
+
+  const hasChinese = 
+    (lyricsJson.Content?.some((item: any) =>
+      item.Lead?.Syllables?.some((syl: any) => CHINESE_REGEX.test(syl.Text)),
+    ) ||
+    lyricsJson.Content?.some((item: any) => CHINESE_REGEX.test(item.Text)) ||
+    lyricsJson.Lines?.some((item: any) => CHINESE_REGEX.test(item.Text)) ||
+    false) && !hasJapaneseAlphabet;
+
+  console.log(`Language Flags:
+    - Has Kanji: ${hasKanji}
+    - Has Korean: ${hasKorean}
+    - Has Chinese: ${hasChinese}
+    - Has Japanese Alphabet: ${hasJapaneseAlphabet}`);      
+
+  return { hasKanji, hasKorean, hasChinese };
 }
 
 /**

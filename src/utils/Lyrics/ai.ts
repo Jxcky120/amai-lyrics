@@ -13,11 +13,13 @@ export async function getPhoneticLyrics(
   lyricsJson: any,
   hasKanji: boolean,
   hasKorean: boolean,
+  hasChinese: boolean,
   lyricsOnly: string[],
 ): Promise<any> {
   // TODO: Check for Chinese characters here and create the prompt. Differentiate between Chinese sonds and Japanese songs. 
-  
-  if (hasKanji) {
+  if (hasChinese) {
+    return await generatePinyin(lyricsJson, lyricsOnly);
+  } else if (hasKanji) {
     if (storage.get('enable_romaji') === 'true') {
       return await generateRomaji(lyricsJson, lyricsOnly);
     } else {
@@ -25,7 +27,8 @@ export async function getPhoneticLyrics(
     }
   } else if (hasKorean) {
     return await generateRomaja(lyricsJson, lyricsOnly);
-  } else {
+  }
+  else {
     return lyricsJson;
   }
 }
@@ -166,6 +169,21 @@ export async function generateRomaji(
     Defaults.romajiPrompt,
   );
 }
+
+/**
+ * Generates Pinyin for Chinese lyrics
+ */
+export async function generatePinyin(
+  lyricsJson: any,
+  lyricsOnly: string[],
+): Promise<any> {
+  return await generateLyricsWithPrompt(
+    lyricsJson,
+    lyricsOnly,
+    Defaults.pinyinPrompt,
+  );
+}
+
 
 /**
  * Generic function to generate lyrics with a specific prompt

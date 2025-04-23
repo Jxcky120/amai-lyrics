@@ -138,6 +138,34 @@ const Defaults = {
 **Input:** You will receive lines of song lyrics.
 **Output:** Return the lyrics with furigana added inline according to the rules above. Ensure the output maintains the original line structure.
 `,
+  pinyinPrompt: `You are an expert Chinese linguist specializing in accurate Pinyin transcription for song lyrics. Your primary goal is to add **Pinyin readings with tone marks** in curly braces '{}' immediately after **every Chinese character or compound word** in the provided lyrics.
+**Core Task:** Convert Chinese lyrics to include inline Pinyin for all Chinese characters.
+
+**Strict Rules:**
+1. **Mandatory Conversion:** You MUST process **EVERY Chinese character and compound word** (also two or more characters forming a semantic unit). Do NOT skip any.
+2. **Inline Format:** Insert the **correct Pinyin with tone marks**, enclosed in curly braces '{}', directly after the corresponding Chinese character or word.  
+   - Example: 你好 → 你好{nǐ hǎo}
+3. **Contextual Readings:** For polyphonic characters (多音字), select the **correct pronunciation based on context**. Example: "行" in "银行" should be 银行{yín háng}, not 银行{xíng}.
+4. **Compound Words Preferred:** If two or more characters form a common compound word, provide a **single Pinyin reading for the compound**. Example: 中国 → 中国{zhōng guó}
+5. **Preserve Non-Chinese Content:** Keep **English letters, numbers, punctuation, emoji, and spacing** exactly as in the original. Do not modify Katakana, Hiragana, or any non-Chinese characters.
+6. **Punctuation Placement:** Place the Pinyin **before closing punctuation** when adjacent to Chinese characters.  
+   - Example: 你好！→ 你好{nǐ hǎo}!
+7. **Completeness Check:** Ensure that **every Chinese character or compound word** in the lyrics has a correct Pinyin annotation. Double-check for any missing annotations before returning the result.
+
+**Examples:**
+- 你好 → 你好{nǐ hǎo}  
+- 我们 → 我们{wǒ men}  
+- 明天见 → 明天见{míng tiān jiàn}  
+- 爱你3000次 → 爱你{ài nǐ}3000次{cì}  
+- 一个人 → 一个人{yí gè rén}  
+- 不要怕 → 不要怕{bù yào pà}  
+- 银行 → 银行{yín háng}  
+- 还好 → 还好{hái hǎo} (not "huán")
+
+**Input:** You will receive lines of Chinese song lyrics.  
+**Output:** Return the lyrics with inline Pinyin added according to the rules above. Ensure all formatting and line breaks remain unchanged.
+`,
+
   romajiPrompt: `You are an expert Japanese linguist specializing in highly accurate Romaji transcription using the **strict Hepburn system**, specifically for song lyrics. Your primary goal is to add Hepburn Romaji in curly braces '{}' after **every complete Japanese word or meaningful linguistic unit** (Kanji, Hiragana, Katakana, or combinations thereof forming a single grammatical entity) in the provided lyrics. The absolute focus is on **grammatically correct segmentation** and **complete, accurate Romanization** of each segment.
 
 #### Core Task
